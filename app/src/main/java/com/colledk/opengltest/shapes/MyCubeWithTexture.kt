@@ -11,10 +11,10 @@ import java.nio.FloatBuffer
 import java.nio.ShortBuffer
 
 private const val SIDE_SIZE = 6
-private const val COORDS_PER_TEXTURE = 2
+private const val COORDS_PER_TEXTURE = 3
 
 class MyCubeWithTexture {
-    private val textures = IntArray(size = 1)
+    private val textures = IntArray(size = SIDE_SIZE)
 
     private val color = floatArrayOf(
         1f,
@@ -55,10 +55,10 @@ class MyCubeWithTexture {
         }
 
     private val textureCoords = floatArrayOf(
-        0.0f, 1.0f,
-        1.0f, 1.0f,
-        0.0f, 0.0f,
-        1.0f, 0.0f,
+        0.0f, 1.0f, 1.0f,
+        1.0f, 1.0f, 1.0f,
+        0.0f, 0.0f, 1.0f,
+        1.0f, 0.0f, 1.0f,
     )
 
     private val textureBuffer: FloatBuffer =
@@ -75,11 +75,11 @@ class MyCubeWithTexture {
     private val vertexShaderCode =
         "uniform mat4 uMVPMatrix;" +
                 "attribute vec4 vPosition;" +
-                "attribute vec2 textureCoordIn;" +
-                "varying vec2 textureCoordOut;" +
+                "attribute vec3 textureCoordIn;" +
+                "varying vec3 textureCoordOut;" +
                 "void main() {" +
                 "   gl_Position = uMVPMatrix * vPosition;" +
-                "   textureCoordOut = textureCoordIn;" +
+                "   textureCoordOut = vPosition.xyz;" +
                 "}"
 
     private val vertexBuffer: FloatBuffer =
@@ -96,10 +96,10 @@ class MyCubeWithTexture {
     private val fragmentShaderCode =
         "precision mediump float;" +
                 "uniform vec4 vColor;" +
-                "uniform sampler2D texture;" +
-                "varying vec2 textureCoordOut;" +
+                "uniform samplerCube texture;" +
+                "varying vec3 textureCoordOut;" +
                 "void main() {" +
-                "   gl_FragColor = texture2D(texture, textureCoordOut) * vColor;" +
+                "   gl_FragColor = textureCube(texture, textureCoordOut);" +
                 "}"
 
 
@@ -177,7 +177,7 @@ class MyCubeWithTexture {
         GLES20.glEnableVertexAttribArray(textureCoordHandle)
 
         GLES20.glActiveTexture(GLES20.GL_TEXTURE0)
-        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, textures[0])
+        GLES20.glBindTexture(GLES20.GL_TEXTURE_CUBE_MAP, textures[0])
         GLES20.glUniform1i(textureHandle, 0)
 
         // Draw the shape
@@ -188,26 +188,30 @@ class MyCubeWithTexture {
         GLES20.glDisableVertexAttribArray(textureCoordHandle)
     }
 
-    fun loadTexture(index: Int, resource: Int, context: Context){
-        val stream = context.resources.openRawResource(resource)
-        val bitmap = BitmapFactory.decodeStream(stream)
-
+    fun loadTexture(index: Int, resources: List<Int>, context: Context){
         // Bind the texture
         GLES20.glGenTextures(1, textures, index)
-        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, textures[index])
+        GLES20.glBindTexture(GLES20.GL_TEXTURE_CUBE_MAP, textures[index])
 
         // Apply filters
-        GLES20.glTexParameterf(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_NEAREST.toFloat())
-        GLES20.glTexParameterf(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MAG_FILTER, GLES20.GL_NEAREST.toFloat())
+        GLES20.glTexParameterf(GLES20.GL_TEXTURE_CUBE_MAP, GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_NEAREST.toFloat())
+        GLES20.glTexParameterf(GLES20.GL_TEXTURE_CUBE_MAP, GLES20.GL_TEXTURE_MAG_FILTER, GLES20.GL_NEAREST.toFloat())
 
         // Wrapping
-        GLES20.glTexParameterf(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_S, GLES20.GL_CLAMP_TO_EDGE.toFloat())
-        GLES20.glTexParameterf(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_T, GLES20.GL_CLAMP_TO_EDGE.toFloat())
+        GLES20.glTexParameterf(GLES20.GL_TEXTURE_CUBE_MAP, GLES20.GL_TEXTURE_WRAP_S, GLES20.GL_CLAMP_TO_EDGE.toFloat())
+        GLES20.glTexParameterf(GLES20.GL_TEXTURE_CUBE_MAP, GLES20.GL_TEXTURE_WRAP_T, GLES20.GL_CLAMP_TO_EDGE.toFloat())
 
-        // Load the bitmap in
-        GLUtils.texImage2D(GLES20.GL_TEXTURE_2D, 0, bitmap, 0)
+        for (i in 0 until 6){
+            val stream = if (i >= resources.size) {
+                context.resources.openRawResource(resources[0])
+            } else context.resources.openRawResource(resources[i])
+            val bitmap = BitmapFactory.decodeStream(stream)
 
-        // Cleanup
-        bitmap.recycle()
+            // Load the bitmap in
+            GLUtils.texImage2D(GLES20.GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, bitmap, 0)
+
+            // Cleanup
+            bitmap.recycle()
+        }
     }
 }

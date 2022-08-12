@@ -27,12 +27,12 @@ class MyRenderer: GLSurfaceView.Renderer {
     private lateinit var myCubeWithTexture: MyCubeWithTexture
 
     override fun onSurfaceCreated(p0: GL10?, p1: EGLConfig?) {
-        GLES20.glClearColor(0f, 0f, 0f, 1.0f)
+        GLES20.glClearColor(1f, 1f, 1f, 1.0f)
         GLES20.glEnable(GLES20.GL_DEPTH_TEST);
 
         myCube = MyCube()
         myCubeWithTexture = MyCubeWithTexture()
-        myCubeWithTexture.loadTexture(0, R.raw.wall, applicationContext)
+        myCubeWithTexture.loadTexture(0, listOf(R.raw.dice1, R.raw.dice6, R.raw.dice3, R.raw.dice4, R.raw.dice2, R.raw.dice5), applicationContext)
     }
 
     override fun onDrawFrame(p0: GL10?) {
@@ -47,7 +47,7 @@ class MyRenderer: GLSurfaceView.Renderer {
 //        val time = SystemClock.uptimeMillis() % 4000L
 //        val angle = 0.090f * time.toInt()
 
-        Matrix.setRotateM(rotationMatrix, 0, angle, 0.4f, 0.4f, 1f)
+        Matrix.setRotateM(rotationMatrix, 0, angle, 1f, 1f, 1f)
 
         Matrix.multiplyMM(scratch, 0, vPMatrix, 0, rotationMatrix, 0)
 

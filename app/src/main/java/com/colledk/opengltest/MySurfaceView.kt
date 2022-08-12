@@ -23,7 +23,7 @@ class MySurfaceView(context: Context): GLSurfaceView(context) {
 
         setRenderer(renderer)
 
-        renderMode = RENDERMODE_WHEN_DIRTY
+//        renderMode = RENDERMODE_WHEN_DIRTY
     }
 
     override fun onTouchEvent(event: MotionEvent): Boolean {
