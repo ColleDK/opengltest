@@ -23,7 +23,7 @@ class MySurfaceView(context: Context): GLSurfaceView(context) {
 
         setRenderer(renderer)
 
-//        renderMode = RENDERMODE_WHEN_DIRTY
+        renderMode = RENDERMODE_WHEN_DIRTY
     }
 
     override fun onTouchEvent(event: MotionEvent): Boolean {
@@ -33,8 +33,15 @@ class MySurfaceView(context: Context): GLSurfaceView(context) {
 
         when(event.action){
             MotionEvent.ACTION_MOVE -> {
-                val dx: Float = x - previousX
-                val dy: Float = y - previousY
+                var dx: Float = x - previousX
+                var dy: Float = y - previousY
+
+                if (dx < 0){
+                    dx * -1
+                }
+                if (dy < 0){
+                    dy * -1
+                }
 
                 renderer.angle += (dy + dx) * TOUCH_SCALE_FACTOR
                 requestRender()
@@ -43,6 +50,7 @@ class MySurfaceView(context: Context): GLSurfaceView(context) {
 
         previousX = x
         previousY = y
+
         return true
     }
 }

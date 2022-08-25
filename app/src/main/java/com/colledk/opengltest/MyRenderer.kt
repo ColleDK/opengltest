@@ -4,7 +4,6 @@ import android.content.Context
 import android.opengl.GLES20
 import android.opengl.GLSurfaceView
 import android.opengl.Matrix
-import android.os.SystemClock
 import com.colledk.opengltest.shapes.MyCube
 import com.colledk.opengltest.shapes.MyCubeWithTexture
 import javax.microedition.khronos.egl.EGLConfig
@@ -27,8 +26,8 @@ class MyRenderer: GLSurfaceView.Renderer {
     private lateinit var myCubeWithTexture: MyCubeWithTexture
 
     override fun onSurfaceCreated(p0: GL10?, p1: EGLConfig?) {
-        GLES20.glClearColor(1f, 1f, 1f, 1.0f)
-        GLES20.glEnable(GLES20.GL_DEPTH_TEST);
+        GLES20.glClearColor(0.5f, 0.7f, 0.3f, 1.0f)
+        GLES20.glEnable(GLES20.GL_DEPTH_TEST)
 
         myCube = MyCube()
         myCubeWithTexture = MyCubeWithTexture()
