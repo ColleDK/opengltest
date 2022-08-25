@@ -3,6 +3,8 @@ package com.colledk.opengltest
 import android.content.Context
 import android.opengl.GLSurfaceView
 import android.view.MotionEvent
+import com.colledk.opengltest.parser.ObjectParser
+import timber.log.Timber
 
 private const val TOUCH_SCALE_FACTOR = 1f
 
@@ -22,6 +24,10 @@ class MySurfaceView(context: Context): GLSurfaceView(context) {
         renderer.applicationContext = context.applicationContext
 
         setRenderer(renderer)
+
+        val data = ObjectParser.parseFile(context.resources.openRawResource(R.raw.cube))
+
+        renderer.data = data
 
         renderMode = RENDERMODE_WHEN_DIRTY
     }

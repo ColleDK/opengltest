@@ -4,8 +4,10 @@ import android.content.Context
 import android.opengl.GLES20
 import android.opengl.GLSurfaceView
 import android.opengl.Matrix
+import com.colledk.opengltest.parser.data.ObjectData
 import com.colledk.opengltest.shapes.MyCube
 import com.colledk.opengltest.shapes.MyCubeWithTexture
+import com.colledk.opengltest.shapes.MyCubeWithTextureParsed
 import javax.microedition.khronos.egl.EGLConfig
 import javax.microedition.khronos.opengles.GL10
 
@@ -17,6 +19,9 @@ class MyRenderer: GLSurfaceView.Renderer {
     @Volatile
     lateinit var applicationContext: Context
 
+    @Volatile
+    lateinit var data: ObjectData
+
     private val vPMatrix = FloatArray(16)
     private val projectionMatrix = FloatArray(16)
     private val viewMatrix = FloatArray(16)
@@ -24,6 +29,7 @@ class MyRenderer: GLSurfaceView.Renderer {
 
     private lateinit var myCube: MyCube
     private lateinit var myCubeWithTexture: MyCubeWithTexture
+    private lateinit var myCubeWithTextureParsed: MyCubeWithTextureParsed
 
     override fun onSurfaceCreated(p0: GL10?, p1: EGLConfig?) {
         GLES20.glClearColor(0.5f, 0.7f, 0.3f, 1.0f)
@@ -32,6 +38,9 @@ class MyRenderer: GLSurfaceView.Renderer {
         myCube = MyCube()
         myCubeWithTexture = MyCubeWithTexture()
         myCubeWithTexture.loadTexture(0, listOf(R.raw.dice1, R.raw.dice6, R.raw.dice3, R.raw.dice4, R.raw.dice2, R.raw.dice5), applicationContext)
+
+        myCubeWithTextureParsed = MyCubeWithTextureParsed(data)
+        myCubeWithTextureParsed.loadTexture(0, listOf(R.raw.dice1, R.raw.dice6, R.raw.dice3, R.raw.dice4, R.raw.dice2, R.raw.dice5), applicationContext)
     }
 
     override fun onDrawFrame(p0: GL10?) {
@@ -51,7 +60,7 @@ class MyRenderer: GLSurfaceView.Renderer {
         Matrix.multiplyMM(scratch, 0, vPMatrix, 0, rotationMatrix, 0)
 
         // Draw
-        myCubeWithTexture.draw(scratch)
+        myCubeWithTextureParsed.draw(scratch)
     }
 
     override fun onSurfaceChanged(p0: GL10?, width: Int, height: Int) {
