@@ -8,10 +8,12 @@ import android.opengl.Matrix
 import com.colledk.opengltest.loadShader
 import com.colledk.opengltest.parser.data.ObjectData
 import timber.log.Timber
+import java.lang.Exception
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.FloatBuffer
 import java.nio.ShortBuffer
+import kotlin.math.sqrt
 
 private const val SIDE_SIZE = 6
 private const val COORDS_PER_TEXTURE = 3
@@ -239,8 +241,82 @@ class MyCubeWithTextureParsed(
         }
     }
 
-    fun rayPick(touchedX: Float, touchedY: Float, screenWidth: Float, screenHeight: Float, viewMatrix: FloatArray, projectionMatrix: FloatArray){
+    fun rayPick(touchedX: Float, touchedY: Float, screenWidth: Float, screenHeight: Float, viewMatrix: FloatArray, projectionMatrix: FloatArray): FloatArray{
+        // Step 1 normalize the device coordinate to 3D space
+        val normalizedCoordinates = floatArrayOf(
+            (2 * touchedX) / screenWidth - 1, // X
+            1 - (2 * touchedY) / screenHeight, // Y
+            1f // Z
+        )
+
+        Timber.d("Normalized coordinates ${normalizedCoordinates.joinToString()}")
+
+        // Step 2 Create a 4D homogenous clip coordinate
+        val rayClip = floatArrayOf(
+            normalizedCoordinates[0], // X
+            normalizedCoordinates[1], // Y
+            normalizedCoordinates[2].times(-1), // Z (should point towards - which is negative Z direction
+            1f // w
+        )
+
+        Timber.d("Ray clip ${rayClip.joinToString()}")
+
+        // Step 3 Transform camera coordinates to 4D
+        // Create the inverse projection matrix
+        val inversedProjectionMatrix = FloatArray(16)
+        Matrix.invertM(inversedProjectionMatrix, 0, projectionMatrix, 0)
+
+        Timber.d("Inversed projection matrix ${inversedProjectionMatrix.joinToString()}")
 
 
+        // Find the 4D coordinates of the camera
+        val rayCamera = FloatArray(4)
+        Matrix.multiplyMV(rayCamera, 0, inversedProjectionMatrix, 0, rayClip, 0)
+
+        // We only needed x,y coordinates so we can specify the z,w coordinates
+        rayCamera[2] = -1f
+        rayCamera[3] = 0f
+
+        // Step 4 Get the 4D world coordinates
+        val inversedViewMatrix = FloatArray(16)
+        Matrix.invertM(inversedViewMatrix, 0, viewMatrix, 0)
+
+        val rayWorld = FloatArray(4)
+        Matrix.multiplyMV(rayWorld, 0, inversedViewMatrix, 0, rayCamera, 0)
+
+        val normalizedRayWorld = rayWorld.normalize()
+        Timber.d("Normalized vector is ${normalizedRayWorld.joinToString()}")
+        return normalizedRayWorld
+    }
+
+    private fun FloatArray.normalize(): FloatArray{
+        check(this.size >= 3){
+            Timber.e("Failed to normalize array with size ${this.size}")
+            throw Exception("Cannot normalize array with size ${this.size}. Size should be at least 3")
+        }
+
+        // Calculate the vector length
+        val currentX = this[0]
+        val currentY = this[1]
+        val currentZ = this[2]
+
+        val length = sqrt((currentX * currentX) + (currentY * currentY) + (currentZ * currentZ))
+
+        // Calculate the normalized vector
+        val normalizedX = currentX / length
+        val normalizedY = currentY / length
+        val normalizedZ = currentZ / length
+
+        return floatArrayOf(
+            normalizedX,
+            normalizedY,
+            normalizedZ,
+        )
+    }
+
+    fun FloatArray.times(n: Int): FloatArray {
+        return this.map {
+            it * n
+        }.toFloatArray()
     }
 }

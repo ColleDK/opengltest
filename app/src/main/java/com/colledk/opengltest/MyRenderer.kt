@@ -8,6 +8,7 @@ import com.colledk.opengltest.parser.data.ObjectData
 import com.colledk.opengltest.shapes.MyCube
 import com.colledk.opengltest.shapes.MyCubeWithTexture
 import com.colledk.opengltest.shapes.MyCubeWithTextureParsed
+import com.colledk.opengltest.shapes.MyLine
 import timber.log.Timber
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
@@ -40,6 +41,7 @@ class MyRenderer: GLSurfaceView.Renderer {
     private lateinit var myCube: MyCube
     private lateinit var myCubeWithTexture: MyCubeWithTexture
     private lateinit var myCubeWithTextureParsed: MyCubeWithTextureParsed
+    private lateinit var myLine: MyLine
 
     override fun onSurfaceCreated(p0: GL10?, p1: EGLConfig?) {
         GLES20.glClearColor(0.5f, 0.7f, 0.3f, 1.0f)
@@ -51,6 +53,8 @@ class MyRenderer: GLSurfaceView.Renderer {
 
         myCubeWithTextureParsed = MyCubeWithTextureParsed(data)
         myCubeWithTextureParsed.loadTexture(0, listOf(R.raw.dice1, R.raw.dice6, R.raw.dice3, R.raw.dice4, R.raw.dice2, R.raw.dice5), applicationContext)
+
+        myLine = MyLine(floatArrayOf(-2f, -2f, -2f, 2f, 2f, 2f,))
     }
 
     override fun onDrawFrame(p0: GL10?) {
@@ -71,6 +75,7 @@ class MyRenderer: GLSurfaceView.Renderer {
 
         // Draw
         myCubeWithTextureParsed.draw(scratch)
+        myLine.draw(scratch)
     }
 
     override fun onSurfaceChanged(p0: GL10?, width: Int, height: Int) {
@@ -85,11 +90,34 @@ class MyRenderer: GLSurfaceView.Renderer {
     }
 
     fun computeTouchCollision(x: Float, y: Float){
-        
         Timber.d("Computing touch collisions for {$x, $y} and view port {$screenWidth, $screenHeight}")
+        val lineCoords = myCubeWithTextureParsed.rayPick(
+            touchedX = x,
+            touchedY = y,
+            screenWidth = screenWidth.toFloat(),
+            screenHeight = screenHeight.toFloat(),
+            viewMatrix = viewMatrix,
+            projectionMatrix = projectionMatrix
+        )
 
+        myLine.moveObject(
+            floatArrayOf(
+                lineCoords[0],
+                lineCoords[1],
+                lineCoords[2],
+                lineCoords.times(15)[0],
+                lineCoords.times(15)[1],
+                lineCoords.times(15)[2],
+            )
+        )
     }
 
+}
+
+fun FloatArray.times(n: Int): FloatArray {
+    return this.map {
+        it * n
+    }.toFloatArray()
 }
 
 fun loadShader(type: Int, shaderCode: String): Int {
