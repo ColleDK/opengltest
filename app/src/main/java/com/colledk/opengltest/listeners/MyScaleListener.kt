@@ -10,7 +10,7 @@ class MyScaleListener(val onScale: (scaleFactor: Float) -> Unit): ScaleGestureDe
         mScaleFactor *= detector.scaleFactor
 
         // Constrain the scale to not be too large or small
-        mScaleFactor = mScaleFactor.coerceIn(0.1f, 2.0f)
+        mScaleFactor = mScaleFactor.coerceIn(0.1f, 20.0f)
 
         onScale(mScaleFactor)
         return super.onScale(detector)

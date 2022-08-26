@@ -4,8 +4,10 @@ import android.content.Context
 import android.graphics.BitmapFactory
 import android.opengl.GLES20
 import android.opengl.GLUtils
+import android.opengl.Matrix
 import com.colledk.opengltest.loadShader
 import com.colledk.opengltest.parser.data.ObjectData
+import timber.log.Timber
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.FloatBuffer
@@ -15,7 +17,7 @@ private const val SIDE_SIZE = 6
 private const val COORDS_PER_TEXTURE = 3
 
 class MyCubeWithTextureParsed(
-    val objectData: ObjectData
+    private val objectData: ObjectData
 ) {
     private val textures = IntArray(size = SIDE_SIZE)
 
@@ -137,14 +139,29 @@ class MyCubeWithTextureParsed(
 
     private fun loadHandles(){
         positionHandle = GLES20.glGetAttribLocation(mProgram, "vPosition")
+        if (positionHandle == -1 ){
+            Timber.e("Could not get attribute location for vPosition")
+        }
 
         colorHandle = GLES20.glGetUniformLocation(mProgram, "vColor")
+        if (colorHandle == -1 ){
+            Timber.e("Could not get attribute location for vColor")
+        }
 
         matrixHandle = GLES20.glGetUniformLocation(mProgram, "uMVPMatrix")
+        if (matrixHandle == -1 ){
+            Timber.e("Could not get attribute location for uMVPMatrix")
+        }
 
         textureCoordHandle = GLES20.glGetAttribLocation(mProgram, "textureCoordIn")
+        if (textureCoordHandle == -1 ){
+            Timber.e("Could not get attribute location for textureCoordIn")
+        }
 
         textureHandle = GLES20.glGetUniformLocation(mProgram, "texture")
+        if (textureHandle == -1 ){
+            Timber.e("Could not get attribute location for texture")
+        }
     }
 
     fun draw(mvpMatrix: FloatArray){
@@ -220,5 +237,10 @@ class MyCubeWithTextureParsed(
             // Cleanup
             bitmap.recycle()
         }
+    }
+
+    fun rayPick(touchedX: Float, touchedY: Float, screenWidth: Float, screenHeight: Float, viewMatrix: FloatArray, projectionMatrix: FloatArray){
+
+
     }
 }

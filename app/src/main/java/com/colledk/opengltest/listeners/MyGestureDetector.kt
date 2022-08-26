@@ -9,7 +9,8 @@ class MyGestureDetector(
     listener: Listener
 ){
     data class Listener(
-        val onScale: (scaleFactor: Float) -> Unit
+        val onScale: (scaleFactor: Float) -> Unit,
+        val onPan: (panFactor: Float) -> Unit
     )
 
     private val gestureScaleDetector = ScaleGestureDetector(

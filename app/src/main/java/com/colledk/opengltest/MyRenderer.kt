@@ -8,10 +8,17 @@ import com.colledk.opengltest.parser.data.ObjectData
 import com.colledk.opengltest.shapes.MyCube
 import com.colledk.opengltest.shapes.MyCubeWithTexture
 import com.colledk.opengltest.shapes.MyCubeWithTextureParsed
+import timber.log.Timber
+import java.nio.ByteBuffer
+import java.nio.ByteOrder
+import java.nio.IntBuffer
 import javax.microedition.khronos.egl.EGLConfig
 import javax.microedition.khronos.opengles.GL10
 
 class MyRenderer: GLSurfaceView.Renderer {
+
+    @Volatile
+    var zoomVal: Float = 0f
 
     @Volatile
     var angle: Float = 0f
@@ -26,6 +33,9 @@ class MyRenderer: GLSurfaceView.Renderer {
     private val projectionMatrix = FloatArray(16)
     private val viewMatrix = FloatArray(16)
     private val rotationMatrix = FloatArray(16)
+
+    private var screenWidth: Int = 0
+    private var screenHeight: Int = 0
 
     private lateinit var myCube: MyCube
     private lateinit var myCubeWithTexture: MyCubeWithTexture
@@ -48,7 +58,7 @@ class MyRenderer: GLSurfaceView.Renderer {
 
         GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT or GLES20.GL_DEPTH_BUFFER_BIT)
 
-        Matrix.setLookAtM(viewMatrix, 0, -2f, 2f, 5f, 0f, 0f, 0f, 0f, 1.0f, 0.0f)
+        Matrix.setLookAtM(viewMatrix, 0, -2f, 2f, 5f + zoomVal, 0f, 0f, 0f, 0f, 1.0f, 0.0f)
 
         Matrix.multiplyMM(vPMatrix, 0, projectionMatrix, 0, viewMatrix, 0)
 
@@ -64,12 +74,22 @@ class MyRenderer: GLSurfaceView.Renderer {
     }
 
     override fun onSurfaceChanged(p0: GL10?, width: Int, height: Int) {
+        screenHeight = height
+        screenWidth = width
+
         GLES20.glViewport(0, 0, width, height)
 
         val ratio = width.toFloat() / height.toFloat()
 
-        Matrix.frustumM(projectionMatrix, 0, -ratio, ratio, -1f, 1f, 3f, 7f)
+        Matrix.frustumM(projectionMatrix, 0, -ratio, ratio, -1f, 1f, 3f, 100f)
     }
+
+    fun computeTouchCollision(x: Float, y: Float){
+        
+        Timber.d("Computing touch collisions for {$x, $y} and view port {$screenWidth, $screenHeight}")
+
+    }
+
 }
 
 fun loadShader(type: Int, shaderCode: String): Int {
@@ -81,5 +101,22 @@ fun loadShader(type: Int, shaderCode: String): Int {
         // add the source code to the shader and compile it
         GLES20.glShaderSource(shader, shaderCode)
         GLES20.glCompileShader(shader)
+
+        val shaderStatus: IntBuffer = ByteBuffer.allocateDirect(1 * 4).run {
+            order(ByteOrder.nativeOrder())
+            asIntBuffer().apply {
+                position(0)
+            }
+        }
+        GLES20.glGetShaderiv(shader, GLES20.GL_COMPILE_STATUS, shaderStatus)
+
+        when(shaderStatus.get()){
+            1 -> { // Everything went okay
+                Timber.d("Shader loaded correctly $shaderCode")
+            }
+            else -> {
+                Timber.e("Error loading shader for $shaderCode")
+            }
+        }
     }
 }
